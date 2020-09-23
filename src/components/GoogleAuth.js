@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-
+import {connect} from 'react-redux'
+import {signIn,signOut} from '../actions/index'
 function GoogleAuth() {
     const [isSignedIn,setIsSignedIn] =useState(null)
     useEffect(()=>{
@@ -9,16 +10,27 @@ function GoogleAuth() {
                 scope:'email'
             }).then(()=>{
                 const auth =window.gapi.auth2.getAuthInstance()
+                //   onAuthChange(auth.isSignedIn.get())
                   setIsSignedIn(auth.isSignedIn.get())
-                  auth.isSignedIn.listen(()=>{setIsSignedIn(auth.isSignedIn.get())})
+                  auth.isSignedIn.listen(onAuthChange)
             })
         })
     })
-    const onSignOut=()=>{
+    const onAuthChange=()=>{
+        const auth =window.gapi.auth2.getAuthInstance()
+        setIsSignedIn(auth.isSignedIn.get())
+    // if(isSignedIn){
+    //     signIn()
+    // }
+    // else{
+    //     signOut()
+    // }
+    }
+    const onSignOutClick=()=>{
         const auth =window.gapi.auth2.getAuthInstance()
         auth.signOut()
     }
-    const onSignIn=()=>{
+    const onSignInClick=()=>{
         const auth =window.gapi.auth2.getAuthInstance()
          auth.signIn()
     }
@@ -29,7 +41,7 @@ function GoogleAuth() {
       else if(isSignedIn){
           return (
               <button className='ui red google button'
-              onClick={onSignOut}
+              onClick={onSignOutClick}
               >
                   <i className='google icon'/>
                   Sign Out
@@ -39,7 +51,7 @@ function GoogleAuth() {
       else{
          return (
             <button className='ui blue google button'
-            onClick={onSignIn}
+            onClick={onSignInClick}
            >
             <i className='google icon'/>
             Sign In with Google
@@ -53,5 +65,10 @@ function GoogleAuth() {
         </div>
     )
 }
-
-export default GoogleAuth
+const mapStateToProps =(state)=>{
+  return {isSignedIn:state.auth.isSignedIn}
+}
+export default connect(
+    mapStateToProps,
+    {signIn,signOut}
+)(GoogleAuth)
